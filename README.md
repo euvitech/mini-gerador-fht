@@ -14,7 +14,7 @@ Pré-requisito: Node.js 18 ou superior instalado.
 
 ```bash
 # 1. Clone o repositório
-git clone <url-do-repositorio>
+git clone https://github.com/euvitech/mini-gerador-fht.git
 cd mini-gerador-fht
 
 # 2. Inicie o servidor (não há dependências para instalar)
