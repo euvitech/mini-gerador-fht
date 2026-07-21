@@ -34,11 +34,14 @@ function gerarRoteiro(dados) {
     throw new Error("Campos ausentes ou vazios: " + camposFaltando.join(", "));
   }
 
+  const nomeOferta = dados.nomeOferta.trim();
+  const resultado = dados.resultado.trim();
   const publico = (dados.publico || "").trim().toLowerCase();
   const linhas = [
-    "Oferta: " + dados.nomeOferta.trim(),
-    "Para quem é: " + publico,
-    "O que você promete: " + dados.resultado.trim(),
+    `🚀 ${nomeOferta}: a virada que ${publico} está esperando.\n`,
+    `Chega de enrolação — o que você recebe é direto ao ponto: ${resultado}.\n`,
+    `Feito sob medida para quem não quer perder tempo com o que não funciona.\n`,
+    `Vagas limitadas. Garanta a sua agora e comece a colher os resultados.`,
   ];
   return linhas.join("\n");
 }
