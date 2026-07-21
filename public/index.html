@@ -1,53 +1,149 @@
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mini Gerador de Roteiro</title>
+  <style>
+    /* Paleta centralizada em variáveis: mudar o tema = mudar 7 linhas */
+    :root {
+      --fundo: #10141a;
+      --cartao: #1a2029;
+      --borda: #2c3543;
+      --texto: #e8ecf1;
+      --texto-suave: #9aa7b8;
+      --acento: #4f8cff;
+      --erro: #ff6b6b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--fundo);
+      color: var(--texto);
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      padding: 24px;
+    }
+    main { width: 100%; max-width: 520px; }
+    h1 { font-size: 1.4rem; margin: 0 0 4px; }
+    .subtitulo { color: var(--texto-suave); margin: 0 0 24px; font-size: 0.95rem; }
+    form {
+      background: var(--cartao);
+      border: 1px solid var(--borda);
+      border-radius: 10px;
+      padding: 24px;
+      display: grid;
+      gap: 16px;
+    }
+    label { display: grid; gap: 6px; font-size: 0.9rem; }
+    input {
+      background: var(--fundo);
+      border: 1px solid var(--borda);
+      border-radius: 6px;
+      color: var(--texto);
+      padding: 10px 12px;
+      font-size: 1rem;
+    }
+    input:focus { outline: 2px solid var(--acento); outline-offset: 1px; border-color: var(--acento); }
+    button {
+      background: var(--acento);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.6; cursor: wait; }
+    #mensagem-erro { color: var(--erro); font-size: 0.9rem; min-height: 1.2em; margin: 0; }
+    #resultado {
+      background: var(--cartao);
+      border: 1px solid var(--borda);
+      border-left: 3px solid var(--acento);
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 20px;
+      white-space: pre-line;
+      line-height: 1.6;
+      display: none; /* só aparece quando houver roteiro */
+    }
+  </style>
 </head>
 <body>
-  
-  <h1>Mini Gerador de Roteiro</h1>
-  <form id="formulario">
-    <input id="nomeOferta" placeholder="Nome da oferta" />
-    <input id="resultado" placeholder="Resultado prometido" />
-    <input id="publico" placeholder="Público" />
-    <button type="submit">Gerar</button>
-  </form>
-  <p id="erro" style="color:red"></p>
-  <pre id="resultado"></pre>
+  <main>
+    <h1>Mini Gerador de Roteiro</h1>
+    <p class="subtitulo">Preencha os três campos e gere um mini-roteiro de vendas.</p>
+
+    <form id="formulario" novalidate>
+      <label>
+        Nome da oferta
+        <input type="text" id="nomeOferta" placeholder="Ex.: Curso de Marketing Digital" required />
+      </label>
+      <label>
+        Resultado prometido
+        <input type="text" id="resultado-prometido" placeholder="Ex.: dobrar suas vendas em 90 dias" required />
+      </label>
+      <label>
+        Público
+        <input type="text" id="publico" placeholder="Ex.: pequenos empreendedores" required />
+      </label>
+      <p id="mensagem-erro" role="alert"></p>
+      <button type="submit" id="botao-gerar">Gerar roteiro</button>
+    </form>
+
+    <div id="resultado" aria-live="polite"></div>
+  </main>
 
   <script>
-    const form = document.getElementById("formulario");
-    const erroEl = document.getElementById("erro");
-    const resultadoEl = document.getElementById("resultado");
+    const formulario = document.getElementById("formulario");
+    const botao = document.getElementById("botao-gerar");
+    const mensagemErro = document.getElementById("mensagem-erro");
+    const areaResultado = document.getElementById("resultado");
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      erroEl.textContent = "";
-      resultadoEl.textContent = "";
+    formulario.addEventListener("submit", async (evento) => {
+      evento.preventDefault();
+      mensagemErro.textContent = "";
+      areaResultado.style.display = "none";
 
       const dados = {
         nomeOferta: document.getElementById("nomeOferta").value.trim(),
-        resultado: document.getElementById("resultado").value.trim(),
+        resultado: document.getElementById("resultado-prometido").value.trim(),
         publico: document.getElementById("publico").value.trim(),
       };
 
       if (!dados.nomeOferta || !dados.resultado || !dados.publico) {
-        erroEl.textContent = "Preencha todos os campos.";
+        mensagemErro.textContent = "Preencha todos os campos antes de gerar.";
         return;
       }
 
+      // Desabilita o botão durante a requisição: evita cliques duplos
+      // e dá feedback visual de que algo está acontecendo.
+      botao.disabled = true;
+      botao.textContent = "Gerando...";
+
       try {
-        const resp = await fetch("/api/gerar", {
+        const resposta = await fetch("/api/gerar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(dados),
         });
-        const corpo = await resp.json();
-        if (!resp.ok) { erroEl.textContent = corpo.erro; return; }
-        resultadoEl.textContent = corpo.roteiro;
+        const corpo = await resposta.json();
+        if (!resposta.ok) {
+          mensagemErro.textContent = corpo.erro || "Não foi possível gerar o roteiro.";
+          return;
+        }
+        areaResultado.textContent = corpo.roteiro;
+        areaResultado.style.display = "block";
       } catch {
-        erroEl.textContent = "Falha ao conectar com o servidor.";
+        mensagemErro.textContent = "Falha de conexão com o servidor. Verifique se ele está rodando.";
+      } finally {
+        // Reabilita o botão sempre — tanto no sucesso quanto no erro.
+        botao.disabled = false;
+        botao.textContent = "Gerar roteiro";
       }
     });
   </script>
