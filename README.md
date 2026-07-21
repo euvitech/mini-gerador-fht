@@ -10,6 +10,10 @@ Aplicação web simples que gera um mini-roteiro de vendas a partir de três cam
 
 ## Como rodar
 
+Acesse: https://mini-gerador-fht.vercel.app/
+
+ou
+
 Pré-requisito: Node.js 18 ou superior instalado.
 
 ```bash
