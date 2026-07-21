@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -6,6 +5,51 @@
   <title>Mini Gerador de Roteiro</title>
 </head>
 <body>
-    
+  
+  <h1>Mini Gerador de Roteiro</h1>
+  <form id="formulario">
+    <input id="nomeOferta" placeholder="Nome da oferta" />
+    <input id="resultado" placeholder="Resultado prometido" />
+    <input id="publico" placeholder="Público" />
+    <button type="submit">Gerar</button>
+  </form>
+  <p id="erro" style="color:red"></p>
+  <pre id="resultado"></pre>
+
+  <script>
+    const form = document.getElementById("formulario");
+    const erroEl = document.getElementById("erro");
+    const resultadoEl = document.getElementById("resultado");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      erroEl.textContent = "";
+      resultadoEl.textContent = "";
+
+      const dados = {
+        nomeOferta: document.getElementById("nomeOferta").value.trim(),
+        resultado: document.getElementById("resultado").value.trim(),
+        publico: document.getElementById("publico").value.trim(),
+      };
+
+      if (!dados.nomeOferta || !dados.resultado || !dados.publico) {
+        erroEl.textContent = "Preencha todos os campos.";
+        return;
+      }
+
+      try {
+        const resp = await fetch("/api/gerar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(dados),
+        });
+        const corpo = await resp.json();
+        if (!resp.ok) { erroEl.textContent = corpo.erro; return; }
+        resultadoEl.textContent = corpo.roteiro;
+      } catch {
+        erroEl.textContent = "Falha ao conectar com o servidor.";
+      }
+    });
+  </script>
 </body>
 </html>
